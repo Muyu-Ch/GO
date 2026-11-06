@@ -100,11 +100,14 @@ class Board:
 
     def eat_stone(self):
         ifeaten=False
+        eaten=set()
         for i in range(1, self.size + 1):
             for j in range(1, self.size + 1):
                 if self.grid[i][j] == self.opposite_color() and self.count_breath(i, j) == 0:
-                    self.grid[i][j] = '.'
+                    eaten.add((i,j))
                     ifeaten=True
+        for i in eaten:
+            self.grid[i[0]][i[1]]='.'
         return ifeaten
     
     def move(self, x, y):
