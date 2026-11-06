@@ -44,6 +44,20 @@ class Board:
         
         pygame.display.flip()
 
+    def draw_stone(self, screen):
+        for i in range(1, self.size + 1):
+            for j in range(1, self.size + 1):
+                if self.grid[i][j] == 'B':
+                    stone_color = (0, 0, 0)
+                elif self.grid[i][j] == 'W':
+                    stone_color = (255, 255, 255)
+                else:
+                    continue
+                pos_x = BOARD_MARGIN + (j - 1) * GRID_SPACING
+                pos_y = BOARD_MARGIN + (i - 1) * GRID_SPACING
+                pygame.draw.circle(screen, stone_color, (int(pos_x), int(pos_y)), STONE_RADIUS)
+        pygame.display.flip()
+
     def display(self):
         for row in self.grid:
             print(' '.join(row))
@@ -119,6 +133,8 @@ board.draw_board(screen)
 
 while True:
     board.display()
+    board.draw_board(screen)
+    board.draw_stone(screen)
     print(f"Current player: {board.get_current_player()}")
     move = input("Enter your move (x y) or 'q' to quit: ")
     if move.lower() == 'q':
