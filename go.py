@@ -1,3 +1,19 @@
+import pygame
+
+WINDOW_SIZE = 800
+
+BOARD_COLOR = (210, 170, 110)
+
+BOARD_MARGIN = 50
+
+GRID_COUNT = 19
+
+GRID_SPACING = (WINDOW_SIZE - 2 * BOARD_MARGIN) / (GRID_COUNT - 1)
+
+STONE_RADIUS = 17
+
+POINT_RADIUS = 5
+
 class Board:
     def __init__(self):
         self.size = 19
@@ -7,6 +23,26 @@ class Board:
                 for i in range(self.size + 2)
             ]   
         self.current_player = 'B'  
+
+    def draw_board(self, screen):
+        screen.fill(BOARD_COLOR)
+
+        for i in range(self.size):
+            start_pos = (BOARD_MARGIN, BOARD_MARGIN + i * GRID_SPACING)
+            end_pos = (WINDOW_SIZE - BOARD_MARGIN, BOARD_MARGIN + i * GRID_SPACING)
+            pygame.draw.line(screen, (0, 0, 0), start_pos, end_pos, 1)
+
+            start_pos = (BOARD_MARGIN + i * GRID_SPACING, BOARD_MARGIN)
+            end_pos = (BOARD_MARGIN + i * GRID_SPACING, WINDOW_SIZE - BOARD_MARGIN)
+            pygame.draw.line(screen, (0, 0, 0), start_pos, end_pos, 1)
+
+        for i in range(3):
+            for j in range(3):
+                point_x = BOARD_MARGIN + (3 + 6 * i) * GRID_SPACING
+                point_y = BOARD_MARGIN + (3 + 6 * j) * GRID_SPACING
+                pygame.draw.circle(screen, (0, 0, 0), (int(point_x), int(point_y)), POINT_RADIUS)
+        
+        pygame.display.flip()
 
     def display(self):
         for row in self.grid:
@@ -75,8 +111,11 @@ class Board:
 
         self.change_player()
         return True
-    
+
 board = Board()
+pygame.init()
+screen=pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
+board.draw_board(screen)
 
 while True:
     board.display()
