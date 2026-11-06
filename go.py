@@ -1,4 +1,5 @@
 import pygame
+import math
 
 WINDOW_SIZE = 800
 
@@ -13,6 +14,8 @@ GRID_SPACING = (WINDOW_SIZE - 2 * BOARD_MARGIN) / (GRID_COUNT - 1)
 STONE_RADIUS = 17
 
 POINT_RADIUS = 5
+
+CLICK_RADIUS=10
 
 class Board:
     def __init__(self):
@@ -58,6 +61,15 @@ class Board:
                 pygame.draw.circle(screen, stone_color, (int(pos_x), int(pos_y)), STONE_RADIUS)
         pygame.display.flip()
 
+    def check_click(self,x,y):
+        for i in range(1,self.size+1):
+            for j in range(1,self.size+1):
+                pos_x = BOARD_MARGIN + (j - 1) * GRID_SPACING
+                pos_y = BOARD_MARGIN + (i - 1) * GRID_SPACING
+                if math.sqrt((x-pos_x)**2+(y-pos_y)**2)<=CLICK_RADIUS:
+                    return i,j
+        return -1,-1
+      
     def display(self):
         for row in self.grid:
             print(' '.join(row))
@@ -129,25 +141,27 @@ class Board:
         self.change_player()
         return True
 
+
+
 board = Board()
 pygame.init()
 screen=pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
 board.draw_board(screen)
 
 while True:
-    board.display()
-    board.draw_board(screen)
-    board.draw_stone(screen)
-    print(f"Current player: {board.get_current_player()}")
-    move = input("Enter your move (x y) or 'q' to quit: ")
-    if move.lower() == 'q':
-        break
-    try:
-        x, y = map(int, move.split())
-        if board.move(x, y):
-            pass
-        else:
-            print("Invalid move. Try again.")
-    except ValueError:
-        print("Invalid input. Please enter two integers separated by a space.")
-board.display()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                mouse_x, mouse_y = event.pos
+                print(mouse_x, mouse_y)
+                x,y=board.check_click(mouse_x,mouse_y)
+                if board.move(x,y):
+                        board.display()
+                        board.draw_board(screen)
+                        board.draw_stone(screen)
+                else:
+                    print("Invalid move. Try again.")
