@@ -1,15 +1,19 @@
 import pygame
 import math
 
-WINDOW_SIZE = 800
+WINDOW_WIDE = 800
+
+WINDOW_LENGTH = 1000
 
 BOARD_COLOR = (210, 170, 110)
 
 BOARD_MARGIN = 50
 
+BOARD_SIZE = 700
+
 GRID_COUNT = 19
 
-GRID_SPACING = (WINDOW_SIZE - 2 * BOARD_MARGIN) / (GRID_COUNT - 1)
+GRID_SPACING = BOARD_SIZE / (GRID_COUNT - 1)
 
 STONE_RADIUS = 17
 
@@ -35,6 +39,11 @@ class Board:
                 for j in range(self.size + 2)]
                 for i in range(self.size + 2)
             ]
+        self.color = [
+            ['*' if i == 0 or i == self.size + 1 or j == 0 or j == self.size + 1 else '.'
+                for j in range(self.size + 2)]
+                for i in range(self.size + 2)
+            ]
         self.current_player = 'B'  
 
     def draw_board(self, screen):
@@ -42,11 +51,11 @@ class Board:
 
         for i in range(self.size):
             start_pos = (BOARD_MARGIN, BOARD_MARGIN + i * GRID_SPACING)
-            end_pos = (WINDOW_SIZE - BOARD_MARGIN, BOARD_MARGIN + i * GRID_SPACING)
+            end_pos = (BOARD_MARGIN + (self.size-1) * GRID_SPACING, BOARD_MARGIN + i * GRID_SPACING)
             pygame.draw.line(screen, (0, 0, 0), start_pos, end_pos, 1)
 
             start_pos = (BOARD_MARGIN + i * GRID_SPACING, BOARD_MARGIN)
-            end_pos = (BOARD_MARGIN + i * GRID_SPACING, WINDOW_SIZE - BOARD_MARGIN)
+            end_pos = (BOARD_MARGIN + i * GRID_SPACING, BOARD_MARGIN + (self.size-1) * GRID_SPACING)
             pygame.draw.line(screen, (0, 0, 0), start_pos, end_pos, 1)
 
         for i in range(3):
@@ -174,9 +183,47 @@ class Board:
         self.change_player()
         return True
 
+    def check_color(self,x,y):
+        color="*"
+        count_black=0
+        count_white=0
+        dx,dy=x,y
+        for i in ((1,0),(0,1),(-1,0),(-1,1)):
+            dx+=i[0]
+            dy+=i[1]
+            if self.grid[dx][dy]=="B":
+                count_black+=1
+                continue
+            if self.grid[dx][dy]=="W":
+                count_white+=1
+                continue
+        if count_black<2 and count_white<2:
+            return '*'
+
+        return "B" if count_black>count_white else "W"
+
+    def check_all_color(self):
+        for i in range(1,self.size+1):
+            for j in range(1,self.size+1):
+                if self.grid=='.':
+                    self.color[i][j]=self.check_color(i,j)
+                else:
+                    self.color[i][j]=self.grid[i][j]
+
+    def count_points(self):
+        black=0
+        white=0
+        for i in range(1,self.size+1):
+            for j in range(1,self.size+1):
+                if self.color[i][j]=='B':
+                    black+=1 
+                else:
+                    white+=1
+        return black,white
+
 board = Board()
 pygame.init()
-screen=pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
+screen=pygame.display.set_mode((WINDOW_LENGTH, WINDOW_WIDE))
 board.draw_board(screen)
 
 while True:
