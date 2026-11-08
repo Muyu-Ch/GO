@@ -25,6 +25,16 @@ class Board:
                 for j in range(self.size + 2)]
                 for i in range(self.size + 2)
             ]   
+        self.breath = [
+            ['*' if i == 0 or i == self.size + 1 or j == 0 or j == self.size + 1 else 0
+                for j in range(self.size + 2)]
+                for i in range(self.size + 2)
+            ]
+        self.ifchecked_breath = [
+            ['*' if i == 0 or i == self.size + 1 or j == 0 or j == self.size + 1 else False
+                for j in range(self.size + 2)]
+                for i in range(self.size + 2)
+            ]
         self.current_player = 'B'  
 
     def draw_board(self, screen):
@@ -44,8 +54,6 @@ class Board:
                 point_x = BOARD_MARGIN + (3 + 6 * i) * GRID_SPACING
                 point_y = BOARD_MARGIN + (3 + 6 * j) * GRID_SPACING
                 pygame.draw.circle(screen, (0, 0, 0), (int(point_x), int(point_y)), POINT_RADIUS)
-        
-        pygame.display.flip()
 
     def draw_stone(self, screen):
         for i in range(1, self.size + 1):
@@ -59,16 +67,21 @@ class Board:
                 pos_x = BOARD_MARGIN + (j - 1) * GRID_SPACING
                 pos_y = BOARD_MARGIN + (i - 1) * GRID_SPACING
                 pygame.draw.circle(screen, stone_color, (int(pos_x), int(pos_y)), STONE_RADIUS)
-        pygame.display.flip()
 
-    def check_click(self,x,y):
-        for i in range(1,self.size+1):
-            for j in range(1,self.size+1):
-                pos_x = BOARD_MARGIN + (j - 1) * GRID_SPACING
-                pos_y = BOARD_MARGIN + (i - 1) * GRID_SPACING
-                if math.sqrt((x-pos_x)**2+(y-pos_y)**2)<=CLICK_RADIUS:
-                    return i,j
-        return -1,-1
+    def check_click(self, x, y):
+        col = round((x - BOARD_MARGIN) / GRID_SPACING)
+        row = round((y - BOARD_MARGIN) / GRID_SPACING)
+
+        if not (0 <= row < self.size and 0 <= col < self.size):
+            return -1, -1
+
+        pos_x = BOARD_MARGIN + col * GRID_SPACING
+        pos_y = BOARD_MARGIN + row * GRID_SPACING
+
+        if math.sqrt((x - pos_x)**2 + (y - pos_y)**2) <= CLICK_RADIUS:
+            return row + 1, col + 1
+
+        return -1, -1
       
     def display(self):
         for row in self.grid:
@@ -91,7 +104,7 @@ class Board:
     def count_breath(self,x,y):
         color=self.grid[x][y]
         if color!="B" and color!="W":
-            return False
+            return
         breath=set()
         visited=set()
         visited.add((x,y))
@@ -108,40 +121,58 @@ class Board:
                         newcounted.add(j)
                         ifadded=True
             visited.update(newcounted)
-        return len(breath)
+
+        for i in visited:
+            self.ifchecked_breath[i[0]][i[1]]=True
+            self.breath[i[0]][i[1]]=len(breath)
+
+    def count_all_breath(self):
+        for i in range(1,self.size+1):
+            for j in range(1,self.size+1):
+                if self.ifchecked_breath[i][j]==False:
+                    self.count_breath(i,j)
+
+        for i in range(1,self.size+1):
+            for j in range(1,self.size+1):
+                self.ifchecked_breath[i][j]=False
 
     def eat_stone(self):
         ifeaten=False
         eaten=set()
+        self.count_all_breath()
         for i in range(1, self.size + 1):
             for j in range(1, self.size + 1):
-                if self.grid[i][j] == self.opposite_color() and self.count_breath(i, j) == 0:
+                if self.breath[i][j]==0 and self.grid[i][j]==self.opposite_color():
                     eaten.add((i,j))
                     ifeaten=True
         for i in eaten:
             self.grid[i[0]][i[1]]='.'
+            self.breath[i[0]][i[1]]=0
         return ifeaten
     
     def move(self, x, y):
         if not (1 <= x <= self.size and 1 <= y <= self.size):
+            print("位置不对！")
             return False
+        
         if self.grid[x][y] != '.' :
+            print("此处已有棋子！")
             return False
         
         self.grid[x][y]= self.current_player
 
         if self.eat_stone():
+            print("吃子！")
             self.change_player()
             return True
 
-        if self.count_breath(x,y)==0:
+        if self.breath[x][y]==0:
             self.grid[x][y]='.'
+            print("不入气！")
             return False
 
         self.change_player()
         return True
-
-
 
 board = Board()
 pygame.init()
@@ -165,3 +196,4 @@ while True:
                         board.draw_stone(screen)
                 else:
                     print("Invalid move. Try again.")
+    pygame.display.flip()
