@@ -96,6 +96,22 @@ class Board:
         for row in self.grid:
             print(' '.join(row))
 
+    def get_group(self,x,y):
+        point=self.grid[x][y]
+        visited=set()
+        visited.add((x,y))
+        ifadded=True
+        while ifadded:
+            newcounted=set()
+            ifadded=False
+            for i in visited:
+                for j in [(i[0]+1,i[1]),(i[0]-1,i[1]),(i[0],i[1]+1),(i[0],i[1]-1)]:
+                    if self.grid[j[0]][j[1]]==point and j not in visited:
+                        newcounted.add(j)
+                        ifadded=True
+            visited.update(newcounted)
+        return visited
+
     def get_current_player(self):
         return "BLACK" if self.current_player == 'B' else "WHITE"
     
@@ -115,25 +131,15 @@ class Board:
         if color!="B" and color!="W":
             return
         breath=set()
-        visited=set()
-        visited.add((x,y))
-        ifadded=True
-        while ifadded:
-            newcounted=set()
-            ifadded=False
-            for i in visited:
-                for j in [(i[0]+1,i[1]),(i[0]-1,i[1]),(i[0],i[1]+1),(i[0],i[1]-1)]:
-                    if self.grid[j[0]][j[1]]=='.' and j not in breath:
-                        breath.add(j)
-                        ifadded=True
-                    elif self.grid[j[0]][j[1]]==color and j not in visited:
-                        newcounted.add(j)
-                        ifadded=True
-            visited.update(newcounted)
-
+        visited=self.get_group(x,y)
+        for i in visited:
+            for j in [(i[0]+1,i[1]),(i[0]-1,i[1]),(i[0],i[1]+1),(i[0],i[1]-1)]:
+                if self.grid[j[0]][j[1]]=='.' and j not in breath:
+                    breath.add(j)
         for i in visited:
             self.ifchecked_breath[i[0]][i[1]]=True
-            self.breath[i[0]][i[1]]=len(breath)
+            self.breath[i[0]][i[1]]=len(breath)        
+            
 
     def count_all_breath(self):
         for i in range(1,self.size+1):
@@ -184,31 +190,33 @@ class Board:
         return True
 
     def check_color(self,x,y):
-        color="*"
-        count_black=0
-        count_white=0
-        dx,dy=x,y
-        for i in ((1,0),(0,1),(-1,0),(-1,1)):
-            dx+=i[0]
-            dy+=i[1]
-            if self.grid[dx][dy]=="B":
-                count_black+=1
-                continue
-            if self.grid[dx][dy]=="W":
-                count_white+=1
-                continue
-        if count_black<2 and count_white<2:
-            return '*'
-
-        return "B" if count_black>count_white else "W"
+        if self.grid[x][y]=="B" or self.grid[x][y]=="W":
+            self.color[x][y]=self.grid[x][y]
+            return 
+        points=self.get_group(x,y)
+        black=set()
+        white=set()
+        for i in points:
+            for j in [(i[0]+1,i[1]),(i[0]-1,i[1]),(i[0],i[1]+1),(i[0],i[1]-1)]:
+                if self.grid[j[0]][j[1]]=='B' and j not in black:
+                    black.add(j)
+                    continue
+                if self.grid[j[0]][j[1]]=='W' and j not in white:
+                    white.add(j)
+                    continue
+        color='*'
+        if len(black)>0 and len(white)==0:
+            color='B'
+        if len(black)==0 and len(white)>0:
+            color='W'
+        for i in points:
+            self.color[i[0]][i[1]]=color
 
     def check_all_color(self):
-        for i in range(1,self.size+1):
-            for j in range(1,self.size+1):
-                if self.grid=='.':
-                    self.color[i][j]=self.check_color(i,j)
-                else:
-                    self.color[i][j]=self.grid[i][j]
+        for x in range(1,self.size+1):
+            for y in range(1,self.size+1):
+                if self.grid[x][y]=='.' and self.color=='.':
+                    self.check_color(x,y)
 
     def count_points(self):
         black=0
