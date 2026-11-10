@@ -19,7 +19,7 @@ STONE_RADIUS = 17
 
 POINT_RADIUS = 5
 
-CLICK_RADIUS=10
+CLICK_RADIUS=15
 
 class Board:
     def __init__(self):
@@ -225,7 +225,7 @@ class Board:
             for j in range(1,self.size+1):
                 if self.color[i][j]=='B':
                     black+=1 
-                else:
+                if self.color[i][j]=='W':
                     white+=1
         return black,white
 
