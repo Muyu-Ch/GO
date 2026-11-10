@@ -215,7 +215,7 @@ class Board:
     def check_all_color(self):
         for x in range(1,self.size+1):
             for y in range(1,self.size+1):
-                if self.grid[x][y]=='.' and self.color=='.':
+                if self.color[x][y]=='.':
                     self.check_color(x,y)
 
     def count_points(self):
@@ -234,11 +234,12 @@ pygame.init()
 screen=pygame.display.set_mode((WINDOW_LENGTH, WINDOW_WIDE))
 board.draw_board(screen)
 
-while True:
+isRunning=True
+while isRunning:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
+            isRunning=False
+
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
@@ -252,3 +253,7 @@ while True:
                 else:
                     print("Invalid move. Try again.")
     pygame.display.flip()
+
+board.check_all_color()
+print("结果：",board.count_points())
+pygame.quit()
