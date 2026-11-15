@@ -28,7 +28,8 @@ class Board:
             ['*' if i == 0 or i == self.size + 1 or j == 0 or j == self.size + 1 else '.'
                 for j in range(self.size + 2)]
                 for i in range(self.size + 2)
-            ]   
+            ]
+        self.boards = set()
         self.breath = [
             ['*' if i == 0 or i == self.size + 1 or j == 0 or j == self.size + 1 else 0
                 for j in range(self.size + 2)]
