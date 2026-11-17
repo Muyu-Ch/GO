@@ -47,6 +47,18 @@ class Board:
             ]
         self.current_player = 'B'  
 
+    def copy_grid(self):
+        return [row.copy() for row in self.grid]
+    
+    def copy_breath(self):
+        return [row.copy() for row in self.breath]
+
+    def copy(self):
+        return self.copy_grid(),self.copy_breath()
+
+    def get_state_key(self):
+        return tuple(v for row in self.grid for v in row)
+
     def draw_board(self, screen):
         screen.fill(BOARD_COLOR)
 
@@ -171,6 +183,8 @@ class Board:
             print("位置不对！")
             return False
         
+        grid_copy,breath_copy=self.copy()
+
         if self.grid[x][y] != '.' :
             print("此处已有棋子！")
             return False
@@ -178,15 +192,24 @@ class Board:
         self.grid[x][y]= self.current_player
 
         if self.eat_stone():
-            print("吃子！")
-            self.change_player()
-            return True
+            if self.check_same():
+                print("吃子！")
+                self.change_player()
+                return True
+            else:
+                print("禁全同！")
+                self.grid=grid_copy
+                self.breath=breath_copy
+                return False
 
+        
         if self.breath[x][y]==0:
             self.grid[x][y]='.'
             print("不入气！")
             return False
-
+        
+        key=self.get_state_key()
+        self.boards.add(key)
         self.change_player()
         return True
 
@@ -230,6 +253,14 @@ class Board:
                     white+=1
         return black,white
 
+    def check_same(self):
+        key=self.get_state_key()
+        if key not in self.boards:
+            self.boards.add(key)
+            return True
+        else:
+            return False
+
 board = Board()
 pygame.init()
 screen=pygame.display.set_mode((WINDOW_LENGTH, WINDOW_WIDE))
@@ -248,10 +279,11 @@ while isRunning:
                 print(mouse_x, mouse_y)
                 x,y=board.check_click(mouse_x,mouse_y)
                 if board.move(x,y):
-                        board.display()
-                        board.draw_board(screen)
-                        board.draw_stone(screen)
+                    board.display()
+                    board.draw_board(screen)
+                    board.draw_stone(screen)
                 else:
+                    board.display()
                     print("Invalid move. Try again.")
     pygame.display.flip()
 
